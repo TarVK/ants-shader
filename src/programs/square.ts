@@ -12,8 +12,8 @@ export const square = createAntProgram({
         randomBorderBounce: false,
     },
     trails: {
-        diffuseSpeed: 0.5 * 1e-1,
-        evaporateSpeed: 5 * 1e-3,
+        diffuseSpeed: 5e-2,
+        evaporateSpeed: 5e-3,
         color: [0.5, 0, 1],
     },
     initialize: () => {

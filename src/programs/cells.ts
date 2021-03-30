@@ -12,8 +12,8 @@ export const cells = createAntProgram({
         randomBorderBounce: true,
     },
     trails: {
-        diffuseSpeed: 2 * 1e-2,
-        evaporateSpeed: 1 * 1e-3,
+        diffuseSpeed: 2e-2,
+        evaporateSpeed: 1e-3,
         color: [0.8, 0.3, 0.4],
     },
     initialize: () => [Math.random(), Math.random(), Math.random() * Math.PI * 2],

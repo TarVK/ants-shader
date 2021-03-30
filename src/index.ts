@@ -8,6 +8,7 @@ import {cells} from "./programs/cells";
 import {ants} from "./programs/ants";
 import {rings} from "./programs/rings";
 import {square} from "./programs/square";
+import {custom} from "./programs/custom";
 
 const programs = {
     random,
@@ -20,6 +21,7 @@ const programs = {
     ants,
     rings,
     square,
+    custom,
 };
 
 // Create a function to change programs
@@ -55,4 +57,4 @@ document.body.appendChild(newline);
 
 // Initialize the first program
 const keys = Object.keys(programs);
-select(keys[0] as any);
+select(keys[keys.length - 1] as any);

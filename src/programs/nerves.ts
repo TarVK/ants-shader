@@ -12,8 +12,8 @@ export const nerves = createAntProgram({
         randomBorderBounce: true,
     },
     trails: {
-        diffuseSpeed: 1 * 1e-2,
-        evaporateSpeed: 1 * 1e-3,
+        diffuseSpeed: 1e-2,
+        evaporateSpeed: 1e-3,
         color: [0.3, 0.4, 1],
     },
     initialize: () => {

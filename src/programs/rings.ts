@@ -12,8 +12,8 @@ export const rings = createAntProgram({
         randomBorderBounce: true,
     },
     trails: {
-        diffuseSpeed: 1 * 1e-1,
-        evaporateSpeed: 1 * 1e-2,
+        diffuseSpeed: 1e-1,
+        evaporateSpeed: 1e-2,
         color: [1, 1, 1],
     },
     initialize: () => {

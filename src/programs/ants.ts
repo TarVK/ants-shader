@@ -12,8 +12,8 @@ export const ants = createAntProgram({
         randomBorderBounce: true,
     },
     trails: {
-        diffuseSpeed: 5 * 1e-2,
-        evaporateSpeed: 1 * 1e-3,
+        diffuseSpeed: 5e-2,
+        evaporateSpeed: 1e-3,
         color: [0.8, 0.3, 0.4],
     },
     initialize: () => [Math.random(), Math.random(), Math.random() * Math.PI * 2],

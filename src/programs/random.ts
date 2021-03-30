@@ -12,7 +12,7 @@ export const random = createAntProgram({
         randomBorderBounce: false,
     },
     trails: {
-        diffuseSpeed: 2 * 1e-1,
+        diffuseSpeed: 2e-1,
         evaporateSpeed: 1e-3,
         color: [0.5, 1, 0.5],
     },

@@ -3,6 +3,7 @@ import {
     GPUFunction,
     IConstantsThis,
     IKernelFunctionThis,
+    IKernelRunShortcut,
     KernelOutput,
     ThreadKernelVariable,
 } from "gpu.js";
@@ -18,37 +19,40 @@ type IAnt = [
 
 type IPixel = number;
 
-export const createAntProgram = (config: {
-    /** Ant properties */
-    ant: {
-        /** Total number of ants */
-        count: number;
-        /** The pixel intensity of 1 ant */
-        intensity: number;
-        /** Movement speed */
-        speed: number;
-        /** The max speed at which the ant can steer */
-        steerSpeed: number;
-        /** The offset distance of the sensor relative to the ant in pixels */
-        sensorOffset: number;
-        /** The offset angles of the sensor */
-        sensorAngle: number;
-        /** The size of the angle */
-        sensorSize: number;
-        /** Whether to bounce in a random direction on the edge */
-        randomBorderBounce: boolean;
-    };
-    trails: {
-        /** The speed at which trails evaporate */
-        evaporateSpeed: number;
-        /** The speed at which trails diffuse */
-        diffuseSpeed: number;
-        /** The color of the trails */
-        color: [number, number, number];
-    };
-    /** Initializes the ants */
-    initialize: (count: number) => IAnt[] | IAnt;
-}) => (size: number) => {
+export const createAntProgram = (
+    config: {
+        /** Ant properties */
+        ant: {
+            /** Total number of ants */
+            count: number;
+            /** The pixel intensity of 1 ant */
+            intensity: number;
+            /** Movement speed */
+            speed: number;
+            /** The max speed at which the ant can steer */
+            steerSpeed: number;
+            /** The offset distance of the sensor relative to the ant in pixels */
+            sensorOffset: number;
+            /** The offset angles of the sensor */
+            sensorAngle: number;
+            /** The size of the angle */
+            sensorSize: number;
+            /** Whether to bounce in a random direction on the edge */
+            randomBorderBounce: boolean;
+        };
+        trails: {
+            /** The speed at which trails evaporate */
+            evaporateSpeed: number;
+            /** The speed at which trails diffuse */
+            diffuseSpeed: number;
+            /** The color of the trails */
+            color: [number, number, number];
+        };
+        /** Initializes the ants */
+        initialize: (count: number) => IAnt[] | IAnt;
+    },
+    updateGetter?: (updater: (reset?: boolean) => void) => void
+) => (size: number) => {
     // Create the main update logic
     /** The function that updates the state for the next cycle */
     function updateAnts(
@@ -102,9 +106,9 @@ export const createAntProgram = (config: {
 
         // Update the direction
         const randomSteerStrength = Math.random();
-        const right = sensors[0];
+        let right = sensors[0];
         const forward = sensors[1];
-        const left = sensors[2];
+        let left = sensors[2];
 
         if (forward > left && forward > right) angle = angle;
         else if (left > forward && right > forward)
@@ -150,44 +154,73 @@ export const createAntProgram = (config: {
 
     // Create the GPU kernels
     const gpu = new GPU();
-    const updateAntsK = gpu
-        .createKernel(updateAnts)
-        .setOutput([config.ant.count])
-        .setConstants(config.ant);
-    const updatePixelsK = gpu
-        .createKernel(updatePixels)
-        .setOutput([size, size])
-        .setConstants(config.trails);
-    const drawK = gpu
-        .createKernel(draw)
-        .setGraphical(true)
-        .setOutput([size, size])
-        .setConstants({
-            r: config.trails.color[0],
-            g: config.trails.color[1],
-            b: config.trails.color[2],
-        });
+    let updateAntsK: IKernelRunShortcut;
+    let updatePixelsK: IKernelRunShortcut;
+    let drawK: IKernelRunShortcut = null as any;
+
+    const span = document.createElement("span");
+    function initShaders() {
+        updateAntsK?.destroy();
+        updateAntsK = gpu
+            .createKernel(updateAnts)
+            .setOutput([config.ant.count])
+            .setConstants(config.ant);
+        updatePixelsK?.destroy();
+        updatePixelsK = gpu
+            .createKernel(updatePixels)
+            .setOutput([size, size])
+            .setConstants(config.trails);
+        (drawK?.canvas as HTMLCanvasElement)?.remove();
+        drawK?.destroy();
+        drawK = gpu
+            .createKernel(draw)
+            .setGraphical(true)
+            .setOutput([size, size])
+            .setConstants({
+                r: config.trails.color[0],
+                g: config.trails.color[1],
+                b: config.trails.color[2],
+            });
+        span.appendChild(drawK.canvas);
+    }
+    initShaders();
+
+    updateGetter?.((reset: boolean) => {
+        initShaders();
+        if (reset) init();
+    });
 
     // Initialize the state
-    let testAnt = config.initialize(config.ant.count);
-    let ants: IAnt[] =
-        testAnt[0] instanceof Array
-            ? (testAnt as IAnt[])
-            : new Array(config.ant.count).fill(0).map(() => config.initialize(1) as IAnt);
-    let pixels = new Array(size).fill(0).map(() => new Array(size).fill(0));
+    let ants: IAnt[];
+    let pixels: number[][];
+    function init() {
+        const testAnt = config.initialize(config.ant.count);
+        ants =
+            testAnt[0] instanceof Array
+                ? (testAnt as IAnt[])
+                : new Array(config.ant.count)
+                      .fill(0)
+                      .map(() => config.initialize(1) as IAnt);
+        pixels = new Array(size).fill(0).map(() => new Array(size).fill(0));
+    }
+    init();
     let running = true;
 
     // Create the render loop
-    const antIntensity = config.ant.intensity;
     const render = () => {
-        ants = updateAntsK(ants, pixels, size) as IAnt[];
-        ants.forEach(([x, y]) => {
-            const px = Math.round(x * (size - 1));
-            const py = Math.round(y * (size - 1));
-            pixels[py][px] = Math.min(pixels[py][px] + antIntensity, 1);
-        });
-        pixels = updatePixelsK(pixels) as IPixel[][];
-        drawK(pixels);
+        try {
+            const antIntensity = config.ant.intensity;
+            ants = updateAntsK(ants, pixels, size) as IAnt[];
+            ants.forEach(([x, y]) => {
+                const px = Math.round(x * (size - 1));
+                const py = Math.round(y * (size - 1));
+                pixels[py][px] = Math.min(pixels[py][px] + antIntensity, 1);
+            });
+            pixels = updatePixelsK(pixels) as IPixel[][];
+            drawK?.(pixels);
+        } catch (e) {
+            console.error(e);
+        }
 
         if (running) requestAnimationFrame(render);
     };
@@ -195,7 +228,7 @@ export const createAntProgram = (config: {
 
     // Return the controls
     return {
-        canvas: drawK.canvas as HTMLCanvasElement,
+        canvas: span,
         start: () => {
             running = true;
             render();

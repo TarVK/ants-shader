@@ -12,8 +12,8 @@ export const diagonal = createAntProgram({
         randomBorderBounce: true,
     },
     trails: {
-        diffuseSpeed: 2 * 1e-1,
-        evaporateSpeed: 1 * 1e-3,
+        diffuseSpeed: 2e-1,
+        evaporateSpeed: 1e-3,
         color: [1, 0, 0],
     },
     initialize: () => {

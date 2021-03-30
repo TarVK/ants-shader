@@ -12,8 +12,8 @@ export const circle = createAntProgram({
         randomBorderBounce: false,
     },
     trails: {
-        diffuseSpeed: 2 * 1e-1,
-        evaporateSpeed: 2 * 1e-3,
+        diffuseSpeed: 2e-1,
+        evaporateSpeed: 2e-3,
         color: [0.5, 0.5, 1],
     },
     initialize: () => {

@@ -12,8 +12,8 @@ export const blobs = createAntProgram({
         randomBorderBounce: true,
     },
     trails: {
-        diffuseSpeed: 2 * 1e-2,
-        evaporateSpeed: 1 * 1e-3,
+        diffuseSpeed: 2e-2,
+        evaporateSpeed: 1e-3,
         color: [0.5, 0.5, 1],
     },
     initialize: () => {

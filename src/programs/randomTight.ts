@@ -12,8 +12,8 @@ export const randomTight = createAntProgram({
         randomBorderBounce: false,
     },
     trails: {
-        diffuseSpeed: 2 * 1e-2,
-        evaporateSpeed: 5 * 1e-3,
+        diffuseSpeed: 2e-2,
+        evaporateSpeed: 5e-3,
         color: [0.5, 1, 0.5],
     },
     initialize: () => [Math.random(), Math.random(), Math.random() * Math.PI * 2],

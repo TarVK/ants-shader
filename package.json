@@ -8,6 +8,8 @@
         "build": "webpack --env dev"
     },
     "dependencies": {
+        "@types/dat.gui": "^0.7.6",
+        "dat.gui": "^0.7.7",
         "gpu.js": "2.11.2"
     },
     "devDependencies": {
