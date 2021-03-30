@@ -57,4 +57,4 @@ document.body.appendChild(newline);
 
 // Initialize the first program
 const keys = Object.keys(programs);
-select(keys[keys.length - 1] as any);
+select(keys[0] as any);
